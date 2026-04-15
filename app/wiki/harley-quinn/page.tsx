@@ -49,6 +49,45 @@ const heroMorphTransition = {
   mass: 0.82,
 };
 
+const heroDockSpring = {
+  type: "spring" as const,
+  stiffness: 280,
+  damping: 26,
+  mass: 0.82,
+};
+
+const heroButtonsContainerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const heroButtonVariants = {
+  hidden: {
+    opacity: 0,
+    y: 22,
+    scale: 0.45,
+    rotate: -10,
+    filter: "blur(4px)",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    filter: "blur(0px)",
+    transition: {
+      type: "spring" as const,
+      stiffness: 520,
+      damping: 22,
+    },
+  },
+};
+
 const fandomGameTheme = {
   backgroundColor: "rgba(244, 244, 244, 0.98)",
   headerColor: "rgba(255, 255, 255, 0.95)",
@@ -114,7 +153,14 @@ export default function HarleyQuinnWikiPage() {
           <motion.button
             type="button"
             layoutId="superman-hero-gif"
-            transition={heroMorphTransition}
+            initial={{ scale: 0.5, opacity: 0, rotate: -25 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{
+              layout: heroMorphTransition,
+              type: "spring",
+              stiffness: 430,
+              damping: 23,
+            }}
             aria-label="Expand Superman helper"
             onClick={() => setHeroMinimized(false)}
             whileHover={{ scale: 1.04 }}
@@ -131,17 +177,30 @@ export default function HarleyQuinnWikiPage() {
             />
           </motion.button>
         ) : (
-          <div className="pointer-events-none fixed bottom-0 right-0 z-50 max-w-[calc(100vw-1rem)] pb-2 pr-2 pl-2 pt-0">
+          <motion.div
+            className="pointer-events-none fixed bottom-0 right-0 z-50 max-w-[calc(100vw-1rem)] pb-2 pr-2 pl-2 pt-0"
+            initial={{ opacity: 0, y: 52, scale: 0.9, filter: "blur(10px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            transition={heroDockSpring}
+          >
             <motion.div
               layoutId="superman-hero-gif"
               transition={heroMorphTransition}
               className="relative overflow-hidden rounded-lg"
             >
-              <img
+              <motion.img
                 src={SUPERMAN_GIF_SRC}
                 alt="Superman"
                 width={360}
                 height={504}
+                initial={{ opacity: 0, scale: 1.12, y: 28 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 22,
+                  delay: 0.05,
+                }}
                 className="pointer-events-none block h-auto w-[min(360px,calc(100vw-1rem))] max-w-full object-contain object-bottom"
                 draggable={false}
               />
@@ -162,31 +221,35 @@ export default function HarleyQuinnWikiPage() {
                   </motion.div>
                 )}
                 <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.22, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+                  variants={heroButtonsContainerVariants}
+                  initial="hidden"
+                  animate="visible"
                   className="flex shrink-0 flex-row gap-2 pointer-events-auto"
                 >
-                  <Button
-                    size="icon"
-                    className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
-                    onClick={() => setMenuOpen(true)}
-                  >
-                    <Gamepad2 className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    aria-label="Minimize to corner"
-                    className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
-                    onClick={() => setHeroMinimized(true)}
-                  >
-                    <Minimize2 className="h-5 w-5" />
-                  </Button>
+                  <motion.div variants={heroButtonVariants}>
+                    <Button
+                      size="icon"
+                      className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
+                      onClick={() => setMenuOpen(true)}
+                    >
+                      <Gamepad2 className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
+                  <motion.div variants={heroButtonVariants}>
+                    <Button
+                      type="button"
+                      size="icon"
+                      aria-label="Minimize to corner"
+                      className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
+                      onClick={() => setHeroMinimized(true)}
+                    >
+                      <Minimize2 className="h-5 w-5" />
+                    </Button>
+                  </motion.div>
                 </motion.div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </LayoutGroup>
       {/* Fixed Top Navigation */}
@@ -196,7 +259,7 @@ export default function HarleyQuinnWikiPage() {
       <NavigationSidebar />
 
       {/* Main Content Area - offset for fixed nav elements */}
-      <main className="pl-[66px] pt-[46px]">
+      <main className="max-w-[100vw] overflow-x-hidden pl-0 md:pl-[66px] pt-14 md:pt-[46px]">
         {/* Wiki Header */}
         <div className="bg-gradient-to-b from-[#2a0a1a] to-[#520044] px-8 py-6">
           <Link href="/" className="inline-flex items-center gap-2 text-[#00d8ff] text-sm mb-4 hover:underline">

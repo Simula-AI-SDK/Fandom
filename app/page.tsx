@@ -14,7 +14,7 @@ export default function FandomPage() {
       <NavigationSidebar />
 
       {/* Main Content Area - offset for fixed nav elements */}
-      <main className="pl-[66px] pt-[46px]">
+      <main className="max-w-[100vw] overflow-x-hidden pl-0 md:pl-[66px] pt-14 md:pt-[46px]">
         <CombinedFandomSections />
       </main>
     </div>

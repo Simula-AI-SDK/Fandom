@@ -83,7 +83,7 @@ export const NavigationSidebar = () => {
   }] as any[];
 
   // @return
-  return <aside className="fixed left-0 top-0 h-full flex flex-col items-center bg-[#f4f4f4] border-r border-gray-200 z-50">
+  return <aside className="hidden md:flex fixed left-0 top-0 h-full flex-col items-center bg-[#f4f4f4] border-r border-gray-200 z-50">
       {/* Top Navigation Section */}
       <nav className="flex-1 w-[66px] flex flex-col items-center py-3 gap-1.5 mt-11" aria-label="Fandom navigation">
         {menuItems.map(item => <NavItem key={item.id} icon={item.icon} label={item.label} badge={item.badge} isActive={activeTab === item.id} onClick={() => setActiveTab(item.id)} href={item.href} />)}

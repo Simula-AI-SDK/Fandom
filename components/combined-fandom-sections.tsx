@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Search, Book, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -98,7 +99,7 @@ const CATEGORIES: WikiCategory[] = [{
     url: ''
   }, {
     name: 'Harry Potter',
-    url: ''
+    url: '/wiki/harry-potter'
   }, {
     name: 'Marvel',
     url: ''
@@ -133,7 +134,7 @@ const POPULAR_WIKIS: PopularWiki[] = [{
   title: 'Harry Potter',
   wikiName: 'Harry Potter Wiki',
   imageUrl: 'https://static.wikia.nocookie.net/aad30c25-f98b-4aae-b024-901c456af1ec/scale-to-height-down/400',
-  url: '#'
+  url: '/wiki/harry-potter'
 }, {
   id: '2',
   title: 'Neo',
@@ -234,9 +235,26 @@ const WikiCategoryColumn = ({
     <div className="text-[#FFC500] text-[14px] font-bold leading-[21px] mb-[5px] uppercase tracking-wider">
       {category.title}
     </div>
-    {category.items.map((item, idx) => <a key={idx} href={item.url} onClick={e => e.preventDefault()} className="text-white text-[14px] font-medium leading-[21px] hover:underline cursor-pointer transition-colors">
-        {item.name}
-      </a>)}
+    {category.items.map((item, idx) =>
+      item.url ? (
+        <Link
+          key={idx}
+          href={item.url}
+          className="text-white text-[14px] font-medium leading-[21px] hover:underline cursor-pointer transition-colors"
+        >
+          {item.name}
+        </Link>
+      ) : (
+        <a
+          key={idx}
+          href="#"
+          onClick={(e) => e.preventDefault()}
+          className="text-white text-[14px] font-medium leading-[21px] hover:underline cursor-pointer transition-colors"
+        >
+          {item.name}
+        </a>
+      )
+    )}
   </div>;
 const VerticalDivider = () => <div className="hidden md:block w-[1px] h-[93px] opacity-25 border-l border-white mx-[18px]" />;
 
@@ -263,12 +281,14 @@ const WikiCard = ({
   wiki
 }: {
   wiki: PopularWiki;
-}) => <a href={wiki.url} className="group transition-opacity hover:opacity-90">
+}) => {
+  const inner = (
     <div className="flex flex-col text-[14px]">
       <div className="relative mb-1.5 border-b-[3px] border-[#fa005a] overflow-hidden">
-        <div className="h-[200px] w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" style={{
-        backgroundImage: `url(${wiki.imageUrl})`
-      }} />
+        <div
+          className="h-[min(200px,45vw)] sm:h-[200px] w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+          style={{ backgroundImage: `url(${wiki.imageUrl})` }}
+        />
       </div>
       <div className="font-medium text-[#520044] leading-tight line-clamp-1">{wiki.title}</div>
       <div className="flex items-start leading-[18px] text-[#520044] opacity-80 mt-0.5">
@@ -276,7 +296,26 @@ const WikiCard = ({
         <span className="text-[12px] line-clamp-1">{wiki.wikiName}</span>
       </div>
     </div>
-  </a>;
+  );
+
+  if (wiki.url.startsWith("/")) {
+    return (
+      <Link href={wiki.url} className="group block transition-opacity hover:opacity-90">
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      href={wiki.url}
+      className="group block transition-opacity hover:opacity-90"
+      onClick={(e) => wiki.url === "#" && e.preventDefault()}
+    >
+      {inner}
+    </a>
+  );
+};
 const NewsCard = ({
   story
 }: {

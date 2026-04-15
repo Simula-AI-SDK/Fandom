@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MiniGameMenu } from "@simula/ads";
 import { FandomTopNavigation } from "@/components/fandom-top-navigation";
 import { NavigationSidebar } from "@/components/navigation-sidebar";
-import { getSimulaCharacterImageUrl } from "@/lib/simula-character-image-url";
+import { useSimulaCharacterImageUrl } from "@/hooks/use-simula-character-image-url";
 
 interface InfoBoxRow {
   label: string;
@@ -61,7 +61,7 @@ const fandomGameTheme = {
 };
 
 export default function HarleyQuinnWikiPage() {
-  const simulaCharImageUrl = getSimulaCharacterImageUrl();
+  const simulaCharImageUrl = useSimulaCharacterImageUrl();
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     biography: true,

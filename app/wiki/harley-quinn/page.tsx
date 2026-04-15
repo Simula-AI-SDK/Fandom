@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, Gamepad2, MessageCircle, Download, ArrowLeft, Play } from "lucide-react";
+import { motion, LayoutGroup } from "framer-motion";
+import { ChevronDown, ChevronUp, Gamepad2, Minimize2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MiniGameMenu } from "@simula/ads";
 import { FandomTopNavigation } from "@/components/fandom-top-navigation";
 import { NavigationSidebar } from "@/components/navigation-sidebar";
+import { getSimulaCharacterImageUrl } from "@/lib/simula-character-image-url";
 
 interface InfoBoxRow {
   label: string;
@@ -29,11 +31,22 @@ const APPEARANCES = [
   { title: "The Suicide Squad", year: "2021" },
 ];
 
-const HARLEY_CHARACTER = {
-  name: "Harley Quinn",
-  id: "harley-quinn-dceu",
-  image: "https://static.wikia.nocookie.net/7b2c03ed-3982-4315-b3b8-c1c6386ea33c/scale-to-height-down/400",
-  description: "Former psychiatrist turned chaotic antihero. Ready to cause some mayhem!",
+/** Character context for Simula mini-game menu & playable iframes (distinct from wiki article subject). */
+const SUPERMAN_SIMULA_CHARACTER = {
+  name: "Superman",
+  id: "superman-dceu",
+  image: "/superman.jpeg",
+  description:
+    "Kal-El of Krypton, Earth’s champion—the Big Blue Boy Scout. Solar-powered strength, speed, and heat vision; stands for truth and justice while protecting the innocent. Ideal for heroic, hopeful mini-game moments.",
+};
+
+const SUPERMAN_GIF_SRC = "/superman.gif";
+
+const heroMorphTransition = {
+  type: "spring" as const,
+  stiffness: 380,
+  damping: 34,
+  mass: 0.82,
 };
 
 const fandomGameTheme = {
@@ -48,6 +61,8 @@ const fandomGameTheme = {
 };
 
 export default function HarleyQuinnWikiPage() {
+  const simulaCharImageUrl = getSimulaCharacterImageUrl();
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     biography: true,
     personality: false,
@@ -56,6 +71,7 @@ export default function HarleyQuinnWikiPage() {
   });
   const [showMessage, setShowMessage] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [heroMinimized, setHeroMinimized] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -82,68 +98,97 @@ export default function HarleyQuinnWikiPage() {
       <MiniGameMenu
         isOpen={menuOpen}
         onClose={() => setMenuOpen(false)}
-        charName={HARLEY_CHARACTER.name}
-        charID={HARLEY_CHARACTER.id}
-        charImage={HARLEY_CHARACTER.image}
-        charDesc={HARLEY_CHARACTER.description}
+        charName={SUPERMAN_SIMULA_CHARACTER.name}
+        charID={SUPERMAN_SIMULA_CHARACTER.id}
+        charImage={simulaCharImageUrl}
+        charDesc={SUPERMAN_SIMULA_CHARACTER.description}
         messages={[]}
         maxGamesToShow={6}
-        delegateChar={true}
+        delegateChar={false}
         theme={fandomGameTheme}
       />
 
-      {/* Fixed Harley Quinn gif in bottom right corner */}
-      <div className="fixed bottom-0 right-0 z-50">
-        {/* Message bubble */}
-        {showMessage && (
-          <div className="absolute bottom-4 right-[250px] w-[320px] animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="relative bg-white rounded-2xl rounded-br-sm px-4 py-3 shadow-lg border border-gray-200">
-              <p className="text-sm text-gray-800">
-                Hiya! You look like you could use a little chaos in your life. Lucky for you, I&apos;ve got plenty to spare! 😈
-              </p>
-            </div>
-            <div className="flex justify-end mt-2">
-              <Button 
-                size="sm" 
-                className="bg-[#ff0066] hover:bg-[#ff0066]/90 text-white text-xs pointer-events-auto"
-              >
-                <Play className="h-3 w-3 mr-1" />
-                Play With Harley Quinn in DC Dark Legion
-              </Button>
-            </div>
+      {/* Fixed Superman helper: shared layout morph (gif ↔ circle); bubble + buttons only when expanded */}
+      <LayoutGroup id="superman-hero">
+        {heroMinimized ? (
+          <motion.button
+            type="button"
+            layoutId="superman-hero-gif"
+            transition={heroMorphTransition}
+            aria-label="Expand Superman helper"
+            onClick={() => setHeroMinimized(false)}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="fixed bottom-4 right-4 z-50 h-14 w-14 overflow-hidden rounded-full border border-gray-200 bg-white shadow-lg pointer-events-auto"
+          >
+            <img
+              src={SUPERMAN_GIF_SRC}
+              alt=""
+              width={56}
+              height={56}
+              className="pointer-events-none h-full w-full object-cover object-[center_15%]"
+              draggable={false}
+            />
+          </motion.button>
+        ) : (
+          <div className="pointer-events-none fixed bottom-0 right-0 z-50 max-w-[calc(100vw-1rem)] pb-2 pr-2 pl-2 pt-0">
+            <motion.div
+              layoutId="superman-hero-gif"
+              transition={heroMorphTransition}
+              className="relative overflow-hidden rounded-lg"
+            >
+              <img
+                src={SUPERMAN_GIF_SRC}
+                alt="Superman"
+                width={360}
+                height={504}
+                className="pointer-events-none block h-auto w-[min(360px,calc(100vw-1rem))] max-w-full object-contain object-bottom"
+                draggable={false}
+              />
+              {/* Bubble + controls overlaid on GIF, anchored bottom-right */}
+              <div className="absolute inset-0 flex flex-col items-end justify-end gap-2 p-3">
+                {showMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                    className="pointer-events-auto max-w-[min(17rem,calc(100%-0.5rem))]"
+                  >
+                    <div className="relative rounded-2xl rounded-br-sm border border-gray-200 bg-white/95 px-3 py-2.5 shadow-lg backdrop-blur-[2px]">
+                      <p className="text-sm text-gray-800">
+                        Need a hand? Truth and justice don&apos;t take a day off—I&apos;m here if you want to play something heroic.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex shrink-0 flex-row gap-2 pointer-events-auto"
+                >
+                  <Button
+                    size="icon"
+                    className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
+                    onClick={() => setMenuOpen(true)}
+                  >
+                    <Gamepad2 className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    aria-label="Minimize to corner"
+                    className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
+                    onClick={() => setHeroMinimized(true)}
+                  >
+                    <Minimize2 className="h-5 w-5" />
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         )}
-        {/* Green radial blur behind gif - shifted down */}
-        <div 
-          className="absolute inset-0 -z-10 scale-[2] blur-2xl translate-y-[40%] translate-x-[20%]"
-          style={{
-            background: 'radial-gradient(circle, rgba(0, 255, 100, 0.7) 0%, rgba(0, 255, 100, 0.4) 40%, rgba(0, 255, 100, 0) 70%)',
-          }}
-        />
-        {/* Buttons positioned at bottom left inside gif */}
-        <div className="absolute bottom-5 left-5 flex gap-2 pointer-events-auto">
-          <Button 
-            size="icon"
-            className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
-            onClick={() => setMenuOpen(true)}
-          >
-            <Gamepad2 className="h-5 w-5" />
-          </Button>
-          <Button 
-            size="icon"
-            className="h-10 w-10 rounded-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white shadow-lg"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </Button>
-        </div>
-        <img
-          src="https://storage.googleapis.com/simula-public/assets/mockups/harley.gif"
-          alt="Harley Quinn"
-          width={240}
-          height={336}
-          className="object-contain pointer-events-none"
-        />
-      </div>
+      </LayoutGroup>
       {/* Fixed Top Navigation */}
       <FandomTopNavigation />
 
@@ -353,22 +398,6 @@ export default function HarleyQuinnWikiPage() {
                       <span className="text-gray-500 text-sm">({app.year})</span>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* Sponsored Ad */}
-              <div className="mt-6 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div className="text-xs text-gray-400 mb-2">Sponsored</div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-2xl">🦇</span>
-                  </div>
-                  <h4 className="font-semibold text-gray-800 mb-1">DC Dark Legion</h4>
-                  <p className="text-sm text-gray-600 mb-3">Assemble your ultimate team of DC heroes and villains!</p>
-                  <Button size="sm" className="w-full bg-[#ff0066] hover:bg-[#ff0066]/90 text-white">
-                    <Download className="h-4 w-4 mr-1" />
-                    Download Now
-                  </Button>
                 </div>
               </div>
             </div>
